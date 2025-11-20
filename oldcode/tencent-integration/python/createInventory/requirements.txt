@@ -1,0 +1,8 @@
+functions_framework==3.8.2
+protobuf==5.29.3
+Requests==2.32.3
+tenacity==9.0.0
+tencentcloud_sdk_python_intl_en==3.0.1076
+google-cloud-secret-manager
+google-cloud-pubsub       
+google.cloud.logging

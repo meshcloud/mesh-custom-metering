@@ -1,0 +1,184 @@
+{
+    "meshStack": {
+        "200035073675": {
+            "projectId": "200035073675",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000039",
+            "tenantIdentifier": "c0093.200035073675.tencent-cloud-01.tencent"
+        },
+        "200035049819": {
+            "projectId": "200035049819",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000128",
+            "tenantIdentifier": "c0093.200035049819.tencent-cloud-01.tencent"
+        },
+        "200030653381": {
+            "projectId": "200030653381",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000039",
+            "tenantIdentifier": "c0093.200030653381.tencent-cloud-01.tencent"
+        },
+        "200025525871": {
+            "projectId": "200025525871",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000039",
+            "tenantIdentifier": "c0093.200025525871.tencent-cloud-01.tencent"
+        },
+        "200023476713": {
+            "projectId": "200023476713",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000039",
+            "tenantIdentifier": "c0093.200023476713.tencent-cloud-01.tencent"
+        },
+        "100010292221": {
+            "projectId": "100010292221",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000039",
+            "tenantIdentifier": "c0093.100010292221.tencent-cloud-01.tencent"
+        },
+        "200019401574": {
+            "projectId": "200019401574",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000128",
+            "tenantIdentifier": "c0093.200019401574.tencent-cloud-01.tencent"
+        },
+        "200019919685": {
+            "projectId": "200019919685",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000039",
+            "tenantIdentifier": "c0093.200019919685.tencent-cloud-01.tencent"
+        },
+        "200019910041": {
+            "projectId": "200019910041",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000039",
+            "tenantIdentifier": "c0093.200019910041.tencent-cloud-01.tencent"
+        },
+        "200018629073": {
+            "projectId": "200018629073",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000039",
+            "tenantIdentifier": "c0093.200018629073.tencent-cloud-01.tencent"
+        },
+        "200019276591": {
+            "projectId": "200019276591",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000039",
+            "tenantIdentifier": "c0093.200019276591.tencent-cloud-01.tencent"
+        },
+        "200021976219": {
+            "projectId": "200021976219",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000039",
+            "tenantIdentifier": "c0093.200021976219.tencent-cloud-01.tencent"
+        },
+        "100008670547": {
+            "projectId": "100008670547",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000039",
+            "tenantIdentifier": "c0093.100008670547.tencent-cloud-01.tencent"
+        },
+        "100010291874": {
+            "projectId": "100010291874",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000039",
+            "tenantIdentifier": "c0093.100010291874.tencent-cloud-01.tencent"
+        },
+        "100011425342": {
+            "projectId": "100011425342",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000039",
+            "tenantIdentifier": "c0093.100011425342.tencent-cloud-01.tencent"
+        },
+        "200015219374": {
+            "projectId": "200015219374",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000039",
+            "tenantIdentifier": "c0093.200015219374.tencent-cloud-01.tencent"
+        },
+        "200019055049": {
+            "projectId": "200019055049",
+            "platformIdentifier": "tencent-cloud-01.tencent",
+            "landingZoneId": "200000000038",
+            "tenantIdentifier": "c0093.200019055049.tencent-cloud-01.tencent"
+        }
+    },
+    "tencent": {
+
+        "200030653381": {
+            "Name": "Recommendation-Engine",
+            "NodeId": "200000000039",
+            "NodeName": "Applications"
+        },
+        "200025525871": {
+            "Name": "MySite",
+            "NodeId": "200000000039",
+            "NodeName": "Applications"
+        },
+        "200023476713": {
+            "Name": "My_M_Safety",
+            "NodeId": "200000000039",
+            "NodeName": "Applications"
+        },
+        "100010292221": {
+            "Name": "Ecom_Prod",
+            "NodeId": "200000000039",
+            "NodeName": "Applications"
+        },
+        "200019401574": {
+            "Name": "Infra-Services",
+            "NodeId": "200000000128",
+            "NodeName": "Infrastructure"
+        },
+        "200019919685": {
+            "Name": "B2B-Prod",
+            "NodeId": "200000000039",
+            "NodeName": "Applications"
+        },
+        "200019910041": {
+            "Name": "B2B-QA",
+            "NodeId": "200000000039",
+            "NodeName": "Applications"
+        },
+        "200018629073": {
+            "Name": "B2B-PoC",
+            "NodeId": "200000000039",
+            "NodeName": "Applications"
+        },
+        "200019276591": {
+            "Name": "Synthia-PoC",
+            "NodeId": "200000000039",
+            "NodeName": "Applications"
+        },
+        "200021976219": {
+            "Name": "Synthia-Prod",
+            "NodeId": "200000000039",
+            "NodeName": "Applications"
+        },
+        "100008670547": {
+            "Name": "Ecom_Dev",
+            "NodeId": "200000000039",
+            "NodeName": "Applications"
+        },
+        "100010291874": {
+            "Name": "Ecom_QA",
+            "NodeId": "200000000039",
+            "NodeName": "Applications"
+        },
+        "100011425342": {
+            "Name": "Brightlabs",
+            "NodeId": "200000000039",
+            "NodeName": "Applications"
+        },
+        "200015219374": {
+            "Name": "Salesforce",
+            "NodeId": "200000000039",
+            "NodeName": "Applications"
+        },
+        "200019055049": {
+            "Name": "main-account",
+            "NodeId": "200000000038",
+            "NodeName": "Root"
+        }
+    }
+}
