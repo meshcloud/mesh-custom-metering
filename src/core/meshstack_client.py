@@ -46,6 +46,8 @@ class MeshStackClient:
         current_page = 0
         all_tenant_ids = []
         
+        logging.debug(f"Fetching tenants for platform {platform_id}, URL: {url}")
+        
         try:
             while True:
                 params = {
@@ -54,20 +56,29 @@ class MeshStackClient:
                     "page": current_page
                 }
                 
+                logging.debug(f"Requesting page {current_page} with params: {params}")
+                
                 response = requests.get(url, headers=self.meshfed_headers, auth=self.auth, params=params)
+                logging.debug(f"MeshStack tenants API response status: {response.status_code}")
                 response.raise_for_status()
                 
                 data = response.json()
+                logging.debug(f"MeshStack tenants API response: {data}")
                 tenants = data.get("_embedded", {}).get("meshTenants", [])
+                
+                logging.debug(f"Found {len(tenants)} tenants on page {current_page}")
                 
                 for tenant in tenants:
                     spec = tenant.get("spec", {})
                     local_id = spec.get("localId")
                     if local_id:
                         all_tenant_ids.append(local_id)
+                        logging.debug(f"Added tenant ID: {local_id}")
                 
                 page_info = data.get("page", {})
                 total_pages = page_info.get("totalPages", 0)
+                
+                logging.debug(f"Page {current_page + 1} of {total_pages}")
                 
                 if current_page >= total_pages - 1:
                     break
@@ -106,8 +117,13 @@ class MeshStackClient:
     ) -> Dict:
         url = f"{self.kraken_host}/api/meshobjects/meshresourceusagereports/{platform_tenant_id}/{date}"
         
+        logging.debug(f"Submitting usage report - URL: {url}")
+        logging.debug(f"Payload: {payload}")
+        
         try:
             response = requests.put(url, headers=self.kraken_headers, auth=self.auth, json=payload)
+            logging.debug(f"MeshStack submit report API response status: {response.status_code}")
+            logging.debug(f"MeshStack submit report API response: {response.text}")
             response.raise_for_status()
             
             return {
@@ -169,5 +185,7 @@ def prepare_payload(
         "source": source,
         "lineItems": line_items
     }
+    
+    logging.debug(f"Prepared payload with {len(line_items)} line items for platform {platform_id}")
     
     return payload
