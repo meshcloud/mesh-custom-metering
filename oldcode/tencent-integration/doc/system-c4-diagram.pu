@@ -1,0 +1,38 @@
+@startuml
+'!include <C4/C4_Container>
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+
+LAYOUT_LANDSCAPE()
+LAYOUT_WITH_LEGEND()
+
+Person_Ext(owner, "Cloud team", "Owners of Tencent platform")
+
+System_Ext(tencent,"Tencent cloud")
+
+System_Ext(meshstack,"meshStack")
+
+System_Boundary(c1, "Tencent integration") {
+    Container(scheduler,"Scheduler","GCP Scheduler","Runs daily")
+    Container(inventory,"Inventory manager","GCP Cloud Function v2","Creats list of meshStack tenants and Tencent accounts")
+    Container(msgQueue1,"Message queue","GCP Pubsub","Delivers meshStack and Tencent tenants/accounts")
+    Container(msgQueue2,"Message queue","GCP Pubsub","Delivers meshStack tenant IDs")
+    Container(costcollection,"Cost collection","GCP Cloud Function v2","Imports cloud costs as usage reports in meshStack")
+    Container(syncnew,"meshStack sync new","GCP Cloud Function v2","Detects new Tencent account and imports in meshStack")
+    Container(syncdel,"meshStack sync del","GCP Cloud Function v2","Detects deleted Tencent account and notifies users")
+}
+
+Rel_Up(scheduler, inventory, "Makes API call", "JSON/HTTPS")
+Rel_Left(inventory, msgQueue1, "Publishes inventory", "JSON/HTTPS")
+Rel_Right(inventory, msgQueue2, "Publishes inventory", "JSON/HTTPS")
+Rel_Right(inventory, tencent, "Collects list of accounts", "JSON/HTTPS")
+Rel_Down(inventory, meshstack, "Collects list of tenants", "JSON/HTTPS")
+Rel_Down(costcollection, msgQueue2, "Reads messages", "JSON/HTTPS")
+Rel_Right(costcollection, tencent, "Collects cloud costs", "JSON/HTTPS")
+Rel_Down(costcollection, meshstack, "Imports usage report", "JSON/HTTPS")
+Rel_Down(syncdel, msgQueue1, "Reads messages", "JSON/HTTPS")
+Rel_Down(syncnew, msgQueue1, "Reads messages", "JSON/HTTPS")
+Rel_Down(syncnew, meshstack, "Imports tenants to", "JSON/HTTPS")
+Rel_Left(syncdel, owner, "Notifies via mail", "SMTP")
+
+@enduml

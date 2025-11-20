@@ -1,0 +1,9 @@
+cloudevents==1.11.0
+functions_framework==3.8.2
+pandas==2.2.3
+protobuf==5.29.2
+Requests==2.32.3
+tencentcloud_sdk_python_intl_en==3.0.1076
+google-cloud-secret-manager
+google.cloud.logging
+tenacity==9.0.0

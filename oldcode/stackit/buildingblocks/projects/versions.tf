@@ -1,0 +1,18 @@
+terraform {
+  required_providers {
+    stackit = {
+      source  = "stackitcloud/stackit"
+      version = "0.61.0"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = "3.2.2"
+    }
+  }
+}
+
+provider "stackit" {
+  default_region           = "eu01"
+  service_account_key_path = "./credentials.json"
+  experiments              = ["iam"]
+}

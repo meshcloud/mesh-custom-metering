@@ -1,0 +1,62 @@
+name: Deploy IONOS Users
+on:
+  workflow_dispatch:
+    inputs:
+      buildingBlockRun:
+        description: "Building Block Run Object"
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: ionos
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup meshstack auth
+        id: setup-meshstack-auth
+        uses: meshcloud/actions-register-source@v0.1.0
+        with:
+          client_id: ${{ vars.BUILDINGBLOCK_API_CLIENT_ID }}
+          key_secret: ${{ secrets.BUILDINGBLOCK_API_KEY_SECRET }}
+          steps: |
+            [
+              {
+                "id": "create-ionos-user",
+                "displayName": "Create Users in IONOS if not exist"
+              }
+            ]
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: IONOS User Creation
+        id: create-ionos-user
+        working-directory: kit/ionos/buildingblocks/vdc-users/buildingblock
+        env:
+          IONOS_USERNAME: ${{ secrets.IONOS_USERNAME }}
+          IONOS_PASSWORD: ${{ secrets.IONOS_PASSWORD }}
+          MESH_USERS: ${{ steps.setup-meshstack-auth.outputs.users }}
+        run: |
+          npm i --save @ionos-cloud/sdk-nodejs
+          set -e  # Fail on error
+          node index.ts
+
+      - name: Send status
+        if: ${{ steps.create-ionos-user.outcome == 'success' || steps.create-ionos-user.outcome == 'failure' }}
+        uses: meshcloud/actions-send-status@v2
+        with:
+          step_id: "create-ionos-user"
+          step_status: ${{ steps.create-ionos-user.outcome == 'success' && 'SUCCEEDED' || 'FAILED' }}
+          user_message: 'creating user in ionos if needed...'
+          system_message:  ${{ steps.create-ionos-user.outcome == 'success' && 'Step was successful.' || 'Step Failed, please check the GitHub actions log for more details.' }}
+
+      - name: Send final status
+        if: ${{ always() }}
+        uses: meshcloud/actions-send-status@v2
+        with:
+          run_status: ${{ job.status == 'success' && 'SUCCEEDED' || 'FAILED' }}

@@ -1,0 +1,32 @@
+@startuml
+
+participant Scheduler as scheduler
+participant "Inventory mgt" as inventory
+participant meshStack as meshstack
+participant "Tencent cloud" as tencent
+queue "Pubsub (inventory)" as pubsub1
+participant "Sync new accounts" as newaccount
+participant "Sync deleted accounts" as delaccount
+queue "Pubsub (cost)" as pubsub2
+participant "Cost mgt" as usage
+actor "Platform owner" as owner
+
+scheduler -> inventory: Start
+inventory -> meshstack: Retrieve Tencent tenants
+meshstack --> inventory
+inventory -> tencent: Retrieve Tencent accounts
+tencent --> inventory
+inventory -> pubsub1: Publish inventory
+inventory -> pubsub2: Publish tenants
+pubsub1 -> newaccount: Deliver inventory
+pubsub1 -> delaccount: Deliver inventory
+newaccount -> meshstack: Import new tenants
+meshstack --> newaccount
+delaccount -> owner: Notify users
+pubsub2 -> usage: Deliver tenant id
+usage -> tencent: Retrieve billing data
+tencent --> usage
+usage -> meshstack: Import usage report
+meshstack --> usage
+
+@enduml

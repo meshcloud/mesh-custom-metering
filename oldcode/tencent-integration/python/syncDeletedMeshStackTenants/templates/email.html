@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Notification regarding your tenants running on meshStack Tencent platform{% endblock %}
+{% block greeting %}{{ greeting_text }}{% endblock %}
+
+{% block content %}
+<tr class="">
+    <td align="left" class="body_text" style="font-family: 'Helvetica Neue Light', Helvetica, Arial, sans-serif; color: #444444; font-size: 16px; padding: 0px; margin: 0px; font-weight: 300; line-height: 23px; text-align: left;">
+        <p>The following Tencent account(s) have been identified as removed from Tencent Cloud. 
+            If applicable, please proceed to remove the corresponding projects and tenants in meshStack.:</p>
+
+            <ul>
+                {% for item in items %}
+                <li><strong>Tencent ID:</strong> {{ item.localId }}, <strong>meshStack tenant ID:</strong> {{ item.tenantIdentifier }}</li>
+                {% endfor %}
+            </ul>
+    
+            <p>Thank you,<br>
+                Your meshcloud team</p>
+    </td>
+</tr>
+
+{% endblock %}
