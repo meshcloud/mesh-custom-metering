@@ -1,0 +1,74 @@
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  vulnerability-scan:
+    name: Scan ${{ matrix.platform }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [tencent, ionos, stackit, ovh]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: |
+          docker build -f platforms/${{ matrix.platform }}/Dockerfile \
+            -t scan-target:${{ matrix.platform }} .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: scan-target:${{ matrix.platform }}
+          format: 'sarif'
+          output: 'trivy-results-${{ matrix.platform }}.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results-${{ matrix.platform }}.sarif'
+          category: trivy-${{ matrix.platform }}
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/docker@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: scan-target:${{ matrix.platform }}
+          args: --severity-threshold=high
+
+  dependency-check:
+    name: Python Dependency Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install safety
+        run: pip install safety
+
+      - name: Check core dependencies
+        run: safety check -r requirements-core.txt
+
+      - name: Check platform dependencies
+        run: |
+          for platform in tencent ionos stackit ovh; do
+            echo "Checking $platform..."
+            safety check -r platforms/$platform/requirements.txt || true
+          done

@@ -1,0 +1,105 @@
+version: 2
+updates:
+  # Core library dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "core"
+    commit-message:
+      prefix: "deps(core)"
+
+  # Tencent platform
+  - package-ecosystem: "pip"
+    directory: "/platforms/tencent"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "tencent"
+    commit-message:
+      prefix: "deps(tencent)"
+
+  # IONOS platform
+  - package-ecosystem: "pip"
+    directory: "/platforms/ionos"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "ionos"
+    commit-message:
+      prefix: "deps(ionos)"
+
+  # STACKIT platform
+  - package-ecosystem: "pip"
+    directory: "/platforms/stackit"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "stackit"
+    commit-message:
+      prefix: "deps(stackit)"
+
+  # OVH platform
+  - package-ecosystem: "pip"
+    directory: "/platforms/ovh"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "ovh"
+    commit-message:
+      prefix: "deps(ovh)"
+
+  # Docker - Tencent
+  - package-ecosystem: "docker"
+    directory: "/platforms/tencent"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "tencent"
+
+  # Docker - IONOS
+  - package-ecosystem: "docker"
+    directory: "/platforms/ionos"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "ionos"
+
+  # Docker - STACKIT
+  - package-ecosystem: "docker"
+    directory: "/platforms/stackit"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "stackit"
+
+  # Docker - OVH
+  - package-ecosystem: "docker"
+    directory: "/platforms/ovh"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "ovh"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"

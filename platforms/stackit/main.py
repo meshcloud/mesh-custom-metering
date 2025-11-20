@@ -1,0 +1,192 @@
+import os
+import sys
+import logging
+from typing import Dict, List
+import requests
+
+sys.path.append('/app/core')
+from meshstack_client import MeshStackClient, prepare_payload
+from utils import get_current_and_last_month, format_date_for_meshstack, should_process_last_month
+from logging_config import setup_logging
+
+
+def get_stackit_projects(container_parent_id: str) -> Dict:
+    stackit_host = os.environ.get('STACKIT_API_URL', 'http://stackit-mock:5003')
+    
+    try:
+        response = requests.get(
+            f"{stackit_host}/v2/projects",
+            params={"containerParentId": container_parent_id}
+        )
+        response.raise_for_status()
+        data = response.json()
+        
+        active_projects = [
+            p for p in data.get('items', [])
+            if p.get('lifecycleState') == 'ACTIVE'
+        ]
+        
+        return {
+            "status": "success",
+            "projects": active_projects
+        }
+    except Exception as err:
+        logging.error(f"Error retrieving STACKIT projects: {err}")
+        return {
+            "status": "failure",
+            "message": str(err)
+        }
+
+
+def get_stackit_costs(container_parent_id: str, from_date: str, to_date: str) -> Dict:
+    stackit_host = os.environ.get('STACKIT_API_URL', 'http://stackit-mock:5003')
+    
+    try:
+        response = requests.get(
+            f"{stackit_host}/v3/costs/{container_parent_id}",
+            params={
+                "from": from_date,
+                "to": to_date,
+                "granularity": "monthly",
+                "depth": "service"
+            }
+        )
+        response.raise_for_status()
+        data = response.json()
+        
+        return {
+            "status": "success",
+            "result": data
+        }
+    except Exception as err:
+        logging.error(f"Error retrieving STACKIT costs: {err}")
+        return {
+            "status": "failure",
+            "message": str(err)
+        }
+
+
+def transform_stackit_to_line_items(cost_data: Dict) -> List[Dict]:
+    line_items = []
+    
+    services = cost_data.get('services', [])
+    
+    for service in services:
+        service_name = service.get('serviceName', 'Unknown')
+        service_category = service.get('serviceCategoryName', '')
+        unit_label = service.get('unitLabel', '')
+        
+        for item in service.get('reportData', []):
+            quantity = item.get('quantity', 0)
+            charge_cents = item.get('charge', 0)
+            total_cost = charge_cents / 100
+            
+            if quantity == 0:
+                usage_cost = 0
+            else:
+                usage_cost = total_cost / quantity
+            
+            line_items.append({
+                "productName": service_name,
+                "usageQuantity": quantity,
+                "usageType": service_category,
+                "usageCost": round(usage_cost, 2),
+                "currency": "EUR",
+                "usageUnit": unit_label,
+                "totalCost": round(total_cost, 2)
+            })
+    
+    return line_items
+
+
+def process_project_costs(
+    mesh_client: MeshStackClient,
+    platform_id: str,
+    container_parent_id: str,
+    month: str
+) -> None:
+    logging.info(f"Processing STACKIT costs for container {container_parent_id}, month {month}")
+    
+    from datetime import datetime
+    date_obj = datetime.strptime(month, "%Y-%m")
+    from_date = date_obj.strftime("%Y-%m-01")
+    
+    import calendar
+    last_day = calendar.monthrange(date_obj.year, date_obj.month)[1]
+    to_date = date_obj.strftime(f"%Y-%m-{last_day:02d}")
+    
+    costs_result = get_stackit_costs(container_parent_id, from_date, to_date)
+    
+    if costs_result['status'] != 'success':
+        logging.error(f"Failed to get costs: {costs_result.get('message')}")
+        return
+    
+    cost_records = costs_result['result']
+    
+    if not isinstance(cost_records, list):
+        cost_records = [cost_records]
+    
+    meshstack_date = format_date_for_meshstack(month)
+    
+    for record in cost_records:
+        project_id = record.get('projectId')
+        
+        if not project_id:
+            logging.warning("Skipping record without projectId")
+            continue
+        
+        logging.info(f"Processing project {project_id}")
+        
+        line_items = transform_stackit_to_line_items(record)
+        
+        if not line_items:
+            logging.info(f"No costs for project {project_id} in {month}")
+            continue
+        
+        payload = prepare_payload(line_items, platform_id, "StackIT")
+        
+        response = mesh_client.submit_usage_report(project_id, meshstack_date, payload)
+        
+        if response['status'] == 'success':
+            logging.info(f"Successfully submitted report for project {project_id}")
+        else:
+            logging.error(f"Failed to submit report for {project_id}: {response.get('message')}")
+
+
+def main():
+    setup_logging(
+        level=os.environ.get('LOG_LEVEL', 'INFO'),
+        loki_url=os.environ.get('LOKI_URL'),
+        platform_name='stackit'
+    )
+    
+    logging.info("Starting STACKIT metering collection")
+    
+    meshfed_host = os.environ['MESHSTACK_MESHFED_URL']
+    kraken_host = os.environ['MESHSTACK_KRAKEN_URL']
+    mesh_user = os.environ['MESHSTACK_API_USER']
+    mesh_secret = os.environ['MESHSTACK_API_SECRET']
+    platform_id = os.environ['PLATFORM_ID']
+    container_parent_ids = os.environ['CONTAINER_PARENT_IDS'].split(',')
+    usage_period = os.environ.get('USAGE_PERIOD')
+    
+    mesh_client = MeshStackClient(meshfed_host, kraken_host, mesh_user, mesh_secret)
+    
+    months = get_current_and_last_month(usage_period)
+    months_to_process = [months['current_month']]
+    
+    if should_process_last_month():
+        months_to_process.append(months['last_month'])
+        logging.info("Processing both current and last month (first 5 days)")
+    
+    for container_parent_id in container_parent_ids:
+        logging.info(f"Processing container parent ID: {container_parent_id}")
+        
+        for month in months_to_process:
+            process_project_costs(mesh_client, platform_id, container_parent_id.strip(), month)
+    
+    logging.info("STACKIT metering collection completed")
+
+
+if __name__ == '__main__':
+    main()

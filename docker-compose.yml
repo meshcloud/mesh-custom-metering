@@ -1,0 +1,221 @@
+services:
+  meshstack-mock:
+    build:
+      context: tests/mocks
+      dockerfile: Dockerfile.meshstack-mock
+    container_name: meshstack-mock
+    ports:
+      - "5050:5050"
+    environment:
+      - PORT=5050
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5050/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - metering-network
+
+  tencent-mock:
+    build:
+      context: tests/mocks
+      dockerfile: Dockerfile.meshstack-mock
+    container_name: tencent-mock
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+    command: python tencent_mock.py
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - metering-network
+
+  ionos-mock:
+    build:
+      context: tests/mocks
+      dockerfile: Dockerfile.meshstack-mock
+    container_name: ionos-mock
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+    command: python ionos_mock.py
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5002/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - metering-network
+
+  stackit-mock:
+    build:
+      context: tests/mocks
+      dockerfile: Dockerfile.meshstack-mock
+    container_name: stackit-mock
+    ports:
+      - "5003:5003"
+    environment:
+      - PORT=5003
+    command: python stackit_mock.py
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5003/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - metering-network
+
+  ovh-mock:
+    build:
+      context: tests/mocks
+      dockerfile: Dockerfile.meshstack-mock
+    container_name: ovh-mock
+    ports:
+      - "5004:5004"
+    environment:
+      - PORT=5004
+    command: python ovh_mock.py
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5004/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - metering-network
+
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - metering-network
+
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./tests/monitoring/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+    depends_on:
+      - loki
+    networks:
+      - metering-network
+
+  tencent-platform:
+    build:
+      context: .
+      dockerfile: platforms/tencent/Dockerfile
+    container_name: tencent-platform
+    environment:
+      - MESHSTACK_MESHFED_URL=http://meshstack-mock:5050
+      - MESHSTACK_KRAKEN_URL=http://meshstack-mock:5050
+      - MESHSTACK_API_USER=test_user
+      - MESHSTACK_API_SECRET=test_password
+      - TENCENT_API_HOST=http://tencent-mock:5001
+      - TENCENT_SECRET_ID=test_secret_id
+      - TENCENT_SECRET_KEY=test_secret_key
+      - PLATFORM_ID=tencent.test
+      - LOKI_URL=http://loki:3100
+    depends_on:
+      meshstack-mock:
+        condition: service_healthy
+      tencent-mock:
+        condition: service_healthy
+      loki:
+        condition: service_started
+    networks:
+      - metering-network
+
+  ionos-platform:
+    build:
+      context: .
+      dockerfile: platforms/ionos/Dockerfile
+    container_name: ionos-platform
+    environment:
+      - MESHSTACK_MESHFED_URL=http://meshstack-mock:5050
+      - MESHSTACK_KRAKEN_URL=http://meshstack-mock:5050
+      - MESHSTACK_API_USER=test_user
+      - MESHSTACK_API_SECRET=test_password
+      - IONOS_API_HOST=http://ionos-mock:5002
+      - IONOS_API_TOKEN=test_token
+      - PLATFORM_ID=ionos.test
+      - LOKI_URL=http://loki:3100
+    depends_on:
+      meshstack-mock:
+        condition: service_healthy
+      ionos-mock:
+        condition: service_healthy
+      loki:
+        condition: service_started
+    networks:
+      - metering-network
+
+  stackit-platform:
+    build:
+      context: .
+      dockerfile: platforms/stackit/Dockerfile
+    container_name: stackit-platform
+    environment:
+      - MESHSTACK_MESHFED_URL=http://meshstack-mock:5050
+      - MESHSTACK_KRAKEN_URL=http://meshstack-mock:5050
+      - MESHSTACK_API_USER=test_user
+      - MESHSTACK_API_SECRET=test_password
+      - STACKIT_API_HOST=http://stackit-mock:5003
+      - STACKIT_API_TOKEN=test_token
+      - PLATFORM_ID=stackit.test
+      - LOKI_URL=http://loki:3100
+    depends_on:
+      meshstack-mock:
+        condition: service_healthy
+      stackit-mock:
+        condition: service_healthy
+      loki:
+        condition: service_started
+    networks:
+      - metering-network
+
+  ovh-platform:
+    build:
+      context: .
+      dockerfile: platforms/ovh/Dockerfile
+    container_name: ovh-platform
+    environment:
+      - MESHSTACK_MESHFED_URL=http://meshstack-mock:5050
+      - MESHSTACK_KRAKEN_URL=http://meshstack-mock:5050
+      - MESHSTACK_API_USER=test_user
+      - MESHSTACK_API_SECRET=test_password
+      - OVH_API_HOST=http://ovh-mock:5004
+      - OVH_APPLICATION_KEY=test_app_key
+      - OVH_APPLICATION_SECRET=test_app_secret
+      - OVH_CONSUMER_KEY=test_consumer_key
+      - PLATFORM_ID=ovh.test
+      - LOKI_URL=http://loki:3100
+    depends_on:
+      meshstack-mock:
+        condition: service_healthy
+      ovh-mock:
+        condition: service_healthy
+      loki:
+        condition: service_started
+    networks:
+      - metering-network
+
+networks:
+  metering-network:
+    driver: bridge
+
+volumes:
+  grafana-data:
