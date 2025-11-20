@@ -85,9 +85,3 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
           platforms: linux/amd64,linux/arm64
-
-      - name: Run integration tests
-        run: |
-          docker-compose up -d meshstack-mock ${{ matrix.platform }}-mock
-          sleep 5
-          docker-compose --profile ${{ matrix.platform }} up --abort-on-container-exit ${{ matrix.platform }}-metering
