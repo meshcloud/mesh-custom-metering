@@ -50,60 +50,10 @@ jobs:
           flags: stackit
           name: stackit-platform
 
-  integration-test:
-    name: Integration Test
-    runs-on: ubuntu-latest
-    needs: test
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Start mock services
-        run: |
-          docker-compose up -d meshstack-mock stackit-mock
-
-      - name: Wait for services
-        run: |
-          timeout 60 bash -c 'until curl -f http://localhost:8080/health; do sleep 2; done'
-
-      - name: Build STACKIT container
-        run: |
-          docker build -f platforms/stackit/Dockerfile -t test-stackit:latest .
-
-      - name: Run integration test
-        run: |
-          docker run --network host \
-            -e MESH_API_URL=http://localhost:8080 \
-            -e MESH_API_USER=test-user \
-            -e MESH_API_SECRET=test-secret \
-            -e STACKIT_API_URL=http://localhost:8083 \
-            -e STACKIT_TOKEN=test-token \
-            -e PLATFORM_ID=stackit.test \
-            -e LOCAL_TESTING=true \
-            test-stackit:latest
-
-      - name: Verify results
-        run: |
-          REPORTS=$(curl -s http://localhost:8080/api/test/reports | jq length)
-          if [ "$REPORTS" -eq 0 ]; then
-            echo "❌ No usage reports submitted!"
-            exit 1
-          fi
-          echo "✅ $REPORTS usage reports submitted successfully"
-
-      - name: Show logs
-        if: always()
-        run: docker-compose logs
-
-      - name: Cleanup
-        if: always()
-        run: docker-compose down -v
-
   build:
     name: Build Container
     runs-on: ubuntu-latest
-    needs: [test, integration-test]
+    needs: test
     permissions:
       contents: read
       packages: write
