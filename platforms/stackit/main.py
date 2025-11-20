@@ -11,12 +11,16 @@ from logging_config import setup_logging
 
 
 def get_stackit_projects(container_parent_id: str) -> Dict:
-    stackit_host = os.environ.get('STACKIT_API_URL', 'http://stackit-mock:5003')
+    stackit_token = os.environ.get('STACKIT_SERVICE_ACCOUNT_TOKEN')
     
     try:
         response = requests.get(
-            f"{stackit_host}/v2/projects",
-            params={"containerParentId": container_parent_id}
+            f"https://resource-manager.api.stackit.cloud/v2/projects",
+            params={"containerParentId": container_parent_id},
+            headers={
+                "Authorization": f"Bearer {stackit_token}",
+                "Accept": "application/json"
+            }
         )
         response.raise_for_status()
         data = response.json()
@@ -39,16 +43,20 @@ def get_stackit_projects(container_parent_id: str) -> Dict:
 
 
 def get_stackit_costs(container_parent_id: str, from_date: str, to_date: str) -> Dict:
-    stackit_host = os.environ.get('STACKIT_API_URL', 'http://stackit-mock:5003')
+    stackit_token = os.environ.get('STACKIT_SERVICE_ACCOUNT_TOKEN')
     
     try:
         response = requests.get(
-            f"{stackit_host}/v3/costs/{container_parent_id}",
+            f"https://cost.api.stackit.cloud/v3/costs/{container_parent_id}",
             params={
                 "from": from_date,
                 "to": to_date,
                 "granularity": "monthly",
                 "depth": "service"
+            },
+            headers={
+                "Authorization": f"Bearer {stackit_token}",
+                "Accept": "application/json"
             }
         )
         response.raise_for_status()

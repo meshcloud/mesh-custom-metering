@@ -16,15 +16,20 @@ def setup_logging(
     if loki_url:
         try:
             from logging_loki import LokiHandler
+            import time
+            
+            time.sleep(2)
             
             loki_handler = LokiHandler(
-                url=loki_url,
+                url=f"{loki_url}/loki/api/v1/push",
                 tags={"platform": platform_name or "unknown"},
                 version="1",
             )
             handlers.append(loki_handler)
         except ImportError:
-            logging.warning("logging_loki not installed, skipping Loki integration")
+            pass
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"Failed to setup Loki handler: {e}")
     
     logging.basicConfig(
         level=log_level,
