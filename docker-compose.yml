@@ -100,6 +100,30 @@ services:
     networks:
       - metering-network
 
+  oci-platform:
+    image: mesh-metering-oci:latest
+    container_name: oci-platform
+    environment:
+      - MESHSTACK_MESHFED_URL=${MESHSTACK_MESHFED_URL}
+      - MESHSTACK_KRAKEN_URL=${MESHSTACK_KRAKEN_URL}
+      - MESHSTACK_API_USER=${MESHSTACK_API_USER}
+      - MESHSTACK_API_SECRET=${MESHSTACK_API_SECRET}
+      - OCI_TENANCY_OCID=${OCI_TENANCY_OCID}
+      - OCI_USER_OCID=${OCI_USER_OCID}
+      - OCI_FINGERPRINT=${OCI_FINGERPRINT}
+      - OCI_KEY_FILE=/secrets/oci_api_key.pem
+      - OCI_REGION=${OCI_REGION}
+      - OCI_ROOT_COMPARTMENT_ID=${OCI_ROOT_COMPARTMENT_ID}
+      - PLATFORM_ID=${OCI_PLATFORM_ID}
+      - LOKI_URL=http://loki:3100
+    volumes:
+      - ${OCI_KEY_FILE_HOST}:/secrets/oci_api_key.pem:ro
+    depends_on:
+      loki:
+        condition: service_started
+    networks:
+      - metering-network
+
 networks:
   metering-network:
     driver: bridge

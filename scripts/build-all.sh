@@ -6,7 +6,7 @@ echo "======================================"
 echo "Building All Platform Containers"
 echo "======================================"
 
-PLATFORMS=("tencent" "ionos" "stackit" "ovh")
+PLATFORMS=("tencent" "ionos" "stackit" "ovh" "oci")
 
 for PLATFORM in "${PLATFORMS[@]}"; do
     if [ -f "platforms/$PLATFORM/Dockerfile" ]; then
