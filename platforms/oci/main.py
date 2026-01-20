@@ -80,10 +80,10 @@ def get_month_date_range(month: str) -> tuple:
     import calendar
 
     date_obj = datetime.strptime(month, "%Y-%m")
-    from_date = date_obj.strftime("%Y-%m-01T00:00:00Z")
+    from_date = date_obj.strftime("%Y-%m-01T00:00:00.000Z")
 
     last_day = calendar.monthrange(date_obj.year, date_obj.month)[1]
-    to_date = date_obj.strftime(f"%Y-%m-{last_day:02d}T23:59:59Z")
+    to_date = date_obj.strftime(f"%Y-%m-{last_day:02d}T00:00:00.000Z")
 
     return from_date, to_date
 
@@ -106,7 +106,7 @@ def get_oci_compartment_costs(
             time_usage_ended=to_date,
             granularity='MONTHLY',
             query_type='COST',
-            compartment_depth=0,
+            compartment_depth=1,
             filter=oci.usage_api.models.Filter(
                 operator='AND',
                 dimensions=[
@@ -122,7 +122,7 @@ def get_oci_compartment_costs(
         response = usage_client.request_summarized_usages(request_details)
         items = response.data.items
 
-        total_cost = sum(item.computed_amount for item in items)
+        total_cost = sum(float(item.computed_amount or 0) for item in items)
         logging.info(
             f"Retrieved {len(items)} cost items for {compartment_path}, "
             f"total: {total_cost:.2f}"
@@ -160,7 +160,7 @@ def transform_oci_to_line_items(cost_data: Dict) -> List[Dict]:
         sku_name = item.sku_name or 'Unknown'
         product_name = f"{service} - {sku_name}"
 
-        line_items.append({
+        line_item = {
             "productName": product_name,
             "usageQuantity": computed_quantity,
             "usageType": service,
@@ -168,7 +168,10 @@ def transform_oci_to_line_items(cost_data: Dict) -> List[Dict]:
             "currency": item.currency or "USD",
             "usageUnit": item.unit or "",
             "totalCost": round(computed_amount, 2)
-        })
+        }
+
+        logging.debug(f"Line item: {line_item}")
+        line_items.append(line_item)
 
     return line_items
 
@@ -223,6 +226,7 @@ def main():
     )
 
     logging.info("Starting OCI metering collection")
+    logging.debug(f"Log level set to: {os.environ.get('LOG_LEVEL', 'INFO')}")
 
     meshfed_host = os.environ['MESHSTACK_MESHFED_URL']
     kraken_host = os.environ['MESHSTACK_KRAKEN_URL']
@@ -231,20 +235,19 @@ def main():
     platform_id = os.environ['PLATFORM_ID']
     root_compartment_id = os.environ['OCI_ROOT_COMPARTMENT_ID']
     usage_period = os.environ.get('USAGE_PERIOD')
+    include_deleted = os.environ.get('INCLUDE_DELETED_TENANTS', 'true').lower() == 'true'
 
     oci_config = get_oci_config()
     mesh_client = MeshStackClient(meshfed_host, kraken_host, mesh_user, mesh_secret)
 
-    leaf_compartments = get_leaf_compartments(root_compartment_id, oci_config)
-
-    mesh_tenants = mesh_client.get_tenants(platform_id)
+    mesh_tenants = mesh_client.get_tenants(platform_id, include_deleted=include_deleted)
 
     if mesh_tenants['status'] != 'success':
         logging.error(f"Failed to fetch meshStack tenants: {mesh_tenants.get('message')}")
-        mesh_tenant_ids = set()
-    else:
-        mesh_tenant_ids = set(mesh_tenants['tenant_ids'])
-        logging.info(f"Found {len(mesh_tenant_ids)} tenants in meshStack")
+        return
+
+    mesh_tenant_ids = mesh_tenants['tenant_ids']
+    logging.info(f"Found {len(mesh_tenant_ids)} tenants in meshStack to process")
 
     months = get_current_and_last_month(usage_period)
     months_to_process = [months['current_month']]
@@ -253,23 +256,14 @@ def main():
         months_to_process.append(months['last_month'])
         logging.info("Processing both current and last month (first 5 days)")
 
-    for leaf in leaf_compartments:
-        compartment_id = leaf['id']
-        compartment_path = leaf['path']
-
-        if mesh_tenant_ids and compartment_id not in mesh_tenant_ids:
-            logging.warning(
-                f"Compartment {compartment_path} not found in meshStack, skipping"
-            )
-            continue
-
+    for compartment_id in mesh_tenant_ids:
         for month in months_to_process:
             process_compartment_costs(
                 mesh_client,
                 platform_id,
                 compartment_id,
                 month,
-                compartment_path,
+                compartment_id,
                 oci_config
             )
 

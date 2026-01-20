@@ -41,12 +41,12 @@ class MeshStackClient:
             "Content-Type": "application/vnd.meshcloud.api.meshobjects.v1+json",
         }
 
-    def get_tenants(self, platform_id: str, page_size: int = 100) -> Dict:
+    def get_tenants(self, platform_id: str, page_size: int = 100, include_deleted: bool = True) -> Dict:
         url = f"{self.meshfed_host}/api/meshobjects/meshtenants"
         current_page = 0
         all_tenant_ids = []
         
-        logging.debug(f"Fetching tenants for platform {platform_id}, URL: {url}")
+        logging.debug(f"Fetching tenants for platform {platform_id}, URL: {url}, include_deleted: {include_deleted}")
         
         try:
             while True:
@@ -55,6 +55,9 @@ class MeshStackClient:
                     "size": page_size,
                     "page": current_page
                 }
+                
+                if not include_deleted:
+                    params["state"] = "ACTIVE"
                 
                 logging.debug(f"Requesting page {current_page} with params: {params}")
                 
@@ -70,10 +73,18 @@ class MeshStackClient:
                 
                 for tenant in tenants:
                     spec = tenant.get("spec", {})
+                    metadata = tenant.get("metadata", {})
                     local_id = spec.get("localId")
+                    deletion_info = metadata.get("deletionInfo")
+                    
                     if local_id:
-                        all_tenant_ids.append(local_id)
-                        logging.debug(f"Added tenant ID: {local_id}")
+                        tenant_info = {
+                            "id": local_id,
+                            "status": "DELETED" if deletion_info else "ACTIVE"
+                        }
+                        all_tenant_ids.append(tenant_info)
+                        status_msg = f" (DELETED)" if deletion_info else ""
+                        logging.debug(f"Added tenant ID: {local_id}{status_msg}")
                 
                 page_info = data.get("page", {})
                 total_pages = page_info.get("totalPages", 0)
@@ -85,10 +96,16 @@ class MeshStackClient:
                 
                 current_page += 1
             
-            logging.info(f"Retrieved {len(all_tenant_ids)} tenants for platform {platform_id}")
+            active_count = sum(1 for t in all_tenant_ids if t["status"] == "ACTIVE")
+            deleted_count = sum(1 for t in all_tenant_ids if t["status"] == "DELETED")
+            logging.info(
+                f"Retrieved {len(all_tenant_ids)} tenants for platform {platform_id} "
+                f"({active_count} active, {deleted_count} deleted)"
+            )
             return {
                 "status": "success",
-                "tenant_ids": all_tenant_ids
+                "tenant_ids": [t["id"] for t in all_tenant_ids],
+                "tenant_details": all_tenant_ids
             }
         except requests.exceptions.HTTPError as http_err:
             error_msg = f"HTTP error: {response.text}" if 'response' in locals() else str(http_err)
