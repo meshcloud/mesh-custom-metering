@@ -27,8 +27,7 @@ graph LR;
     D -- "0. schedules the job" --> B
     B -- "1. fetch meshTenants" --> A
     B -- "2. collect cost/usage data" --> C
-    B -- "3. transform & aggregate" --> B
-    B -- "4. submit usage reports" --> A
+    B -- "3. submit usage reports" --> A
 ```
 
 ### Components
