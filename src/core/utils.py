@@ -23,7 +23,9 @@ def get_current_and_last_month(usage_period: Optional[str] = None) -> Dict[str, 
     if usage_period and validate_date(usage_period, month_format):
         current_month = datetime.strptime(usage_period, month_format)
     else:
-        current_month = datetime.combine(date.today().replace(day=1), datetime.min.time())
+        current_month = datetime.combine(
+            date.today().replace(day=1), datetime.min.time()
+        )
 
     last_month = current_month - relativedelta(months=1)
 
