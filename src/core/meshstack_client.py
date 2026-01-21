@@ -1,5 +1,6 @@
 import requests
 import logging
+from typing import Dict, Any
 from requests.auth import HTTPBasicAuth
 from tenacity import (
     retry,
@@ -54,7 +55,7 @@ class MeshStackClient:
 
         try:
             while True:
-                params = {
+                params: Dict[str, Any] = {
                     "platformIdentifier": platform_id,
                     "size": page_size,
                     "page": current_page,
