@@ -160,13 +160,17 @@ def transform_oci_to_line_items(cost_data: Dict) -> List[Dict]:
         sku_name = item.sku_name or 'Unknown'
         product_name = f"{service} - {sku_name}"
 
+        unit = item.unit or ""
+        if 'ECPU' in sku_name and unit == 'Instance Hours':
+            unit = 'ECPU Hours'
+
         line_item = {
             "productName": product_name,
             "usageQuantity": computed_quantity,
             "usageType": service,
             "usageCost": round(unit_cost, 4),
             "currency": item.currency or "USD",
-            "usageUnit": item.unit or "",
+            "usageUnit": unit,
             "totalCost": round(computed_amount, 2)
         }
 
