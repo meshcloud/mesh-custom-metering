@@ -79,7 +79,8 @@ def transform_ovh_to_line_items(usage_data: Dict) -> List[Dict]:
             "usageCost": round(usage_cost, 2),
             "currency": "EUR",
             "usageUnit": unit,
-            "totalCost": round(total_cost, 2)
+            "totalCost": round(total_cost, 2),
+            "sellerId": "OVH"
         })
     
     return line_items

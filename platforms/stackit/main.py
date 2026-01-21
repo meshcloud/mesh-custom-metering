@@ -117,7 +117,8 @@ def transform_stackit_to_line_items(cost_data: Dict) -> List[Dict]:
                 "usageCost": round(usage_cost, 2),
                 "currency": "EUR",
                 "usageUnit": unit_label,
-                "totalCost": round(total_cost, 2)
+                "totalCost": round(total_cost, 2),
+                "sellerId": "STACKIT"
             }
             logging.debug(f"Created line item: {line_item}")
             line_items.append(line_item)

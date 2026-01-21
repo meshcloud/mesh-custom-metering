@@ -171,7 +171,8 @@ def transform_oci_to_line_items(cost_data: Dict) -> List[Dict]:
             "usageCost": round(unit_cost, 4),
             "currency": item.currency or "USD",
             "usageUnit": unit,
-            "totalCost": round(computed_amount, 2)
+            "totalCost": round(computed_amount, 2),
+            "sellerId": "Oracle"
         }
 
         logging.debug(f"Line item: {line_item}")

@@ -50,7 +50,8 @@ def transform_tencent_to_line_items(costs: List[Dict]) -> List[Dict]:
             "usageCost": cost_item.get("SinglePrice", 0),
             "currency": "USD",
             "usageUnit": cost_item.get("UsedAmountUnit", ""),
-            "totalCost": cost_item.get("RealCost", 0)
+            "totalCost": cost_item.get("RealCost", 0),
+            "sellerId": "Tencent Cloud"
         })
     
     return line_items
