@@ -1,6 +1,6 @@
 import requests
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, List
 from requests.auth import HTTPBasicAuth
 from tenacity import (
     retry,
@@ -9,7 +9,6 @@ from tenacity import (
     retry_if_exception_type,
     RetryError,
 )
-from typing import List, Dict
 
 RETRYABLE_EXCEPTIONS = (
     requests.exceptions.RequestException,
