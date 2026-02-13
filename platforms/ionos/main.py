@@ -91,7 +91,8 @@ def transform_ionos_to_line_items(meters: List[Dict]) -> List[Dict]:
                 "usageCost": meter['totalCost'],
                 "currency": "EUR",
                 "usageUnit": meter['unit'],
-                "totalCost": meter['totalCost']
+                "totalCost": meter['totalCost'],
+                "sellerId": "IONOS"
             })
     
     return line_items
