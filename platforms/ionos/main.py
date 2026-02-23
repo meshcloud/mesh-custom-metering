@@ -451,6 +451,7 @@ def process_month(
     if include_price_group:
         logging.info("Fetching IONOS price group information from invoices")
         try:
+            # PriceGroups are retrieved from the IONOS invoices API. This only works for finished months, so if the current month is being processed, this may return no data until the month is complete.
             price_groups_map = get_ionos_price_groups(month, session=session, timeout=timeout)
             if price_groups_map:
                 logging.info(f"Successfully retrieved {len(price_groups_map)} price group mappings")
