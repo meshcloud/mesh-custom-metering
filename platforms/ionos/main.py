@@ -388,7 +388,7 @@ def calculate_datacenter_costs(usage_data: Dict, products: Dict, include_product
     return results
 
 
-def transform_ionos_to_line_items(meters: List[Dict], include_product_group: bool = False) -> List[Dict]:
+def transform_ionos_to_line_items(meters: List[Dict], include_product_group: bool = False, seller_id: str = "IONOS", seller_product_group: str = "IONOS") -> List[Dict]:
     line_items = []
     
     for meter in meters:
@@ -408,7 +408,8 @@ def transform_ionos_to_line_items(meters: List[Dict], include_product_group: boo
                 "currency": "EUR",
                 "usageUnit": meter['unit'],
                 "totalCost": meter['totalCost'],
-                "sellerId": "IONOS"
+                "sellerId": seller_id,
+                "sellerProductGroup": seller_product_group
             }
             
             # Add product group to line item if enabled and available
@@ -426,6 +427,8 @@ def process_month(
     month: str,
     include_product_group: bool = False,
     include_price_group: bool = False,
+    seller_id: str = "IONOS",
+    seller_product_group: str = "IONOS",
     session: Optional[requests.Session] = None,
     timeout: int = 30
 ) -> None:
@@ -438,6 +441,8 @@ def process_month(
         month: Period in YYYY-MM format
         include_product_group: Whether to include product group information
         include_price_group: Whether to include price group information from invoices
+        seller_id: Seller identifier for line items (default: "IONOS")
+        seller_product_group: Seller product group for line items (default: "IONOS")
         session: Optional requests.Session with retry strategy
         timeout: Request timeout in seconds
     """
@@ -469,7 +474,7 @@ def process_month(
         datacenter_id = datacenter['id']
         logging.info(f"Processing datacenter {datacenter_id}")
         
-        line_items = transform_ionos_to_line_items(datacenter['meters'], include_product_group)
+        line_items = transform_ionos_to_line_items(datacenter['meters'], include_product_group, seller_id, seller_product_group)
         
         if not line_items:
             logging.info(f"No costs for datacenter {datacenter_id} in {month}")
@@ -518,6 +523,11 @@ def main():
     if include_price_group:
         logging.info("Price group information will be included in usageType")
     
+    # Read configuration for seller information
+    seller_id = os.environ.get('IONOS_SELLER_ID', 'IONOS')
+    seller_product_group = os.environ.get('IONOS_SELLER_PRODUCT_GROUP', 'IONOS')
+    logging.debug(f"Seller configuration: sellerId={seller_id}, sellerProductGroup={seller_product_group}")
+    
     # Read IONOS API timeout configuration
     try:
         timeout = int(os.environ.get('IONOS_API_TIMEOUT', '30'))
@@ -549,6 +559,8 @@ def main():
                 month,
                 include_product_group=include_product_group,
                 include_price_group=include_price_group,
+                seller_id=seller_id,
+                seller_product_group=seller_product_group,
                 session=session,
                 timeout=timeout
             )
