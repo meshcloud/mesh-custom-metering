@@ -142,10 +142,14 @@ def get_oci_compartment_costs(
         }
 
 
-def transform_oci_to_line_items(cost_data: Dict) -> List[Dict]:
+def transform_oci_to_line_items(cost_data: Dict, seller_id: str = None, seller_product_group: str = None) -> List[Dict]:
     line_items = []
 
     items = cost_data.get('items', [])
+    
+    # Use provided values or defaults
+    seller_id = seller_id or os.environ.get('OCI_SELLER_ID', 'Oracle')
+    seller_product_group = seller_product_group or os.environ.get('OCI_SELLER_PRODUCT_GROUP', 'Oracle')
 
     for item in items:
         computed_amount = float(item.computed_amount or 0)
@@ -172,7 +176,8 @@ def transform_oci_to_line_items(cost_data: Dict) -> List[Dict]:
             "currency": item.currency or "USD",
             "usageUnit": unit,
             "totalCost": round(computed_amount, 2),
-            "sellerId": "Oracle"
+            "sellerId": seller_id,
+            "sellerProductGroup": seller_product_group
         }
 
         logging.debug(f"Line item: {line_item}")

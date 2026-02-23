@@ -399,7 +399,9 @@ def prepare_payload(
     account_name: str,
     cost_items: List[Dict],
     month: str,
-    platform_id: str
+    platform_id: str,
+    seller_id: str = None,
+    seller_product_group: str = None
 ) -> Dict:
     """
     Prepares a meshResourceUsageReport payload for meshStack.
@@ -410,10 +412,16 @@ def prepare_payload(
         cost_items: List of cost items
         month: Month in YYYY-MM format
         platform_id: Platform identifier
+        seller_id: Optional seller ID override
+        seller_product_group: Optional seller product group override
         
     Returns:
         Dict with meshStack payload structure
     """
+    # Use provided values or defaults from environment
+    seller_id = seller_id or os.environ.get('AWS_SELLER_ID', 'AWS')
+    seller_product_group = seller_product_group or os.environ.get('AWS_SELLER_PRODUCT_GROUP', 'AWS')
+    
     line_items = [
         {
             'meterName': item['serviceName'],
@@ -421,7 +429,9 @@ def prepare_payload(
             'quantity': item['usageQuantity'],
             'cost': item['cost'],
             'currency': item['currency'],
-            'usageType': item['usageType']
+            'usageType': item['usageType'],
+            'sellerId': seller_id,
+            'sellerProductGroup': seller_product_group
         }
         for item in cost_items
     ]

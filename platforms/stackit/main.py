@@ -87,7 +87,7 @@ def get_stackit_costs(container_parent_id: str, from_date: str, to_date: str) ->
         }
 
 
-def transform_stackit_to_line_items(cost_data: Dict, seller_id: str, seller_product_id: str) -> List[Dict]:
+def transform_stackit_to_line_items(cost_data: Dict, seller_id: str, seller_product_group: str) -> List[Dict]:
     line_items = []
     
     services = cost_data.get('services', [])
@@ -119,7 +119,7 @@ def transform_stackit_to_line_items(cost_data: Dict, seller_id: str, seller_prod
                 "usageUnit": unit_label,
                 "totalCost": round(total_cost, 2),
                 "sellerId": seller_id,
-                "sellerProductId": seller_product_id
+                "sellerProductGroup": seller_product_group
             }
             logging.debug(f"Created line item: {line_item}")
             line_items.append(line_item)
@@ -134,7 +134,7 @@ def process_project_costs(
     container_parent_id: str,
     month: str,
     seller_id: str,
-    seller_product_id: str
+    seller_product_group: str
 ) -> None:
     logging.info(f"Processing STACKIT costs for container {container_parent_id}, month {month}")
     
@@ -173,7 +173,7 @@ def process_project_costs(
         
         logging.info(f"Processing project {project_id}")
         
-        line_items = transform_stackit_to_line_items(record, seller_id, seller_product_id)
+        line_items = transform_stackit_to_line_items(record, seller_id, seller_product_group)
         
         if not line_items:
             logging.info(f"No costs for project {project_id} in {month}")
@@ -208,8 +208,8 @@ def main():
     platform_id = os.environ['PLATFORM_ID']
     container_parent_ids = os.environ['CONTAINER_PARENT_IDS'].split(',')
     usage_period = os.environ.get('USAGE_PERIOD')
-    seller_id = os.environ.get('SELLER_ID', "")
-    seller_product_id = os.environ.get('SELLER_PRODUCT_ID', "")
+    seller_id = os.environ.get('STACKIT_SELLER_ID', "STACKIT")
+    seller_product_group = os.environ.get('STACKIT_SELLER_PRODUCT_GROUP', "STACKIT")
 
     
     mesh_client = MeshStackClient(meshfed_host, kraken_host, mesh_user, mesh_secret)
@@ -225,7 +225,7 @@ def main():
         logging.info(f"Processing container parent ID: {container_parent_id}")
         
         for month in months_to_process:
-            process_project_costs(mesh_client, platform_id, container_parent_id.strip(), month, seller_id, seller_product_id)
+            process_project_costs(mesh_client, platform_id, container_parent_id.strip(), month, seller_id, seller_product_group)
     
     logging.info("STACKIT metering collection completed")
 
