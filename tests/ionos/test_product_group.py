@@ -750,7 +750,7 @@ class TestTransformIonosToLineItemsAdditional:
         assert 'productGroup' not in line_items[1]
 
 
-class TestEndToEnd:
+class TestEndToEndWithProductGroup:
     """End-to-end tests for the complete flow."""
     
     def test_complete_flow_with_product_group(self, sample_usage, sample_products):
