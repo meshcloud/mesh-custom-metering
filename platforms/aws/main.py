@@ -618,11 +618,18 @@ def main():
             return
         
         # Determine periods to process
-        current_month, last_month, should_process_last = get_current_and_last_month()
+        usage_period = config.get('metering', {}).get('usage_period')
         
-        periods = [current_month]
-        if should_process_last:
-            periods.append(last_month)
+        if usage_period:
+            # Use manually configured periods
+            periods = usage_period
+        else:
+            # Fall back to automatic current/last month behavior
+            current_month, last_month, should_process_last = get_current_and_last_month()
+            
+            periods = [current_month]
+            if should_process_last:
+                periods.append(last_month)
         
         logger.info(f"Processing periods: {periods}")
         
