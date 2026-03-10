@@ -622,7 +622,7 @@ class TestEndToEnd:
         assert meters[2]['totalCost'] == 125.00
 
 
-class TestTransformIonosToLineItems:
+class TestTransformIonosToLineItemsAdditional:
     """Tests for transform_ionos_to_line_items function."""
     
     def test_line_items_without_product_group(self, sample_products):
