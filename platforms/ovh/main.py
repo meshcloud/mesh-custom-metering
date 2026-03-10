@@ -56,10 +56,14 @@ def get_ovh_usage(project_id: str, from_date: str, to_date: str) -> Dict:
         }
 
 
-def transform_ovh_to_line_items(usage_data: Dict) -> List[Dict]:
+def transform_ovh_to_line_items(usage_data: Dict, seller_id: str = None, seller_product_group: str = None) -> List[Dict]:
     line_items = []
     
     resources = usage_data.get('resources', [])
+    
+    # Use provided values or defaults from environment
+    seller_id = seller_id or os.environ.get('OVH_SELLER_ID', 'OVH')
+    seller_product_group = seller_product_group or os.environ.get('OVH_SELLER_PRODUCT_GROUP', 'OVH')
     
     for resource in resources:
         resource_type = resource.get('type', 'Unknown')
@@ -80,7 +84,8 @@ def transform_ovh_to_line_items(usage_data: Dict) -> List[Dict]:
             "currency": "EUR",
             "usageUnit": unit,
             "totalCost": round(total_cost, 2),
-            "sellerId": "OVH"
+            "sellerId": seller_id,
+            "sellerProductGroup": seller_product_group
         })
     
     return line_items
