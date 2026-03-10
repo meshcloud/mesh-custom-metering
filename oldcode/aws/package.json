@@ -1,0 +1,23 @@
+{
+  "name": "aws-usagereport",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@aws-sdk/client-cost-explorer": "^3.818.0",
+    "@aws-sdk/client-organizations": "^3.817.0",
+    "dotenv": "^16.5.0",
+    "tsx": "^4.19.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.23",
+    "typescript": "^5.8.3"
+  }
+}

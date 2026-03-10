@@ -56,6 +56,7 @@ networks:
 
 volumes:
   grafana-data:
+
   tencent-platform:
     image: mesh-metering-tencent:latest
     container_name: tencent-platform
@@ -111,22 +112,41 @@ volumes:
     networks:
       - metering-network
 
-  ovh-platform:
-    image: mesh-metering-ovh:latest
-    container_name: ovh-platform
-    environment:
-      - MESHSTACK_MESHFED_URL=${MESHSTACK_MESHFED_URL}
-      - MESHSTACK_KRAKEN_URL=${MESHSTACK_KRAKEN_URL}
-      - MESHSTACK_API_USER=${MESHSTACK_API_USER}
-      - MESHSTACK_API_SECRET=${MESHSTACK_API_SECRET}
-      - OVH_API_HOST=${OVH_API_HOST}
-      - OVH_APPLICATION_KEY=${OVH_APPLICATION_KEY}
-      - OVH_APPLICATION_SECRET=${OVH_APPLICATION_SECRET}
-      - OVH_CONSUMER_KEY=${OVH_CONSUMER_KEY}
-      - PLATFORM_ID=${OVH_PLATFORM_ID}
-      - LOKI_URL=http://loki:3100
-    depends_on:
-      loki:
-        condition: service_started
-    networks:
-      - metering-network
+   ovh-platform:
+     image: mesh-metering-ovh:latest
+     container_name: ovh-platform
+     environment:
+       - MESHSTACK_MESHFED_URL=${MESHSTACK_MESHFED_URL}
+       - MESHSTACK_KRAKEN_URL=${MESHSTACK_KRAKEN_URL}
+       - MESHSTACK_API_USER=${MESHSTACK_API_USER}
+       - MESHSTACK_API_SECRET=${MESHSTACK_API_SECRET}
+       - OVH_API_HOST=${OVH_API_HOST}
+       - OVH_APPLICATION_KEY=${OVH_APPLICATION_KEY}
+       - OVH_APPLICATION_SECRET=${OVH_APPLICATION_SECRET}
+       - OVH_CONSUMER_KEY=${OVH_CONSUMER_KEY}
+       - PLATFORM_ID=${OVH_PLATFORM_ID}
+       - LOKI_URL=http://loki:3100
+     depends_on:
+       loki:
+         condition: service_started
+     networks:
+       - metering-network
+
+   gcp-platform:
+     image: mesh-metering-gcp:latest
+     container_name: gcp-platform
+     environment:
+       - MESHSTACK_MESHFED_URL=${MESHSTACK_MESHFED_URL}
+       - MESHSTACK_KRAKEN_URL=${MESHSTACK_KRAKEN_URL}
+       - MESHSTACK_API_USER=${MESHSTACK_API_USER}
+       - MESHSTACK_API_SECRET=${MESHSTACK_API_SECRET}
+       - GCP_SERVICE_ACCOUNT_JSON=${GCP_SERVICE_ACCOUNT_JSON}
+       - GCP_BILLING_DATASET=${GCP_BILLING_DATASET}
+       - GCP_COST_TYPE=${GCP_COST_TYPE:-cost}
+       - PLATFORM_ID=${GCP_PLATFORM_ID}
+       - LOKI_URL=http://loki:3100
+     depends_on:
+       loki:
+         condition: service_started
+     networks:
+       - metering-network
