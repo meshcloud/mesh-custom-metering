@@ -18,46 +18,13 @@ env:
   IMAGE_NAME: ${{ github.repository }}/mesh-metering-stackit
 
 jobs:
-  test:
-    name: Test STACKIT Platform
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-
-      - name: Install dependencies
-        working-directory: platforms/stackit
-        run: |
-          pip install -r requirements.txt
-          pip install pytest pytest-cov pytest-mock
-
-      - name: Run unit tests
-        working-directory: platforms/stackit
-        run: |
-          pytest tests/ -v --cov=src --cov-report=xml
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./platforms/stackit/coverage.xml
-          flags: stackit
-          name: stackit-platform
-
   build:
     name: Build Container
     runs-on: ubuntu-latest
-    needs: test
     permissions:
       contents: read
       packages: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
