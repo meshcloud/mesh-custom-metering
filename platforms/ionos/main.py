@@ -7,41 +7,55 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+# local execution
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'core'))
+
 sys.path.append('/app/core')
 from meshstack_client import MeshStackClient, prepare_payload
 from utils import get_current_and_last_month, format_date_for_meshstack, should_process_last_month
 from logging_config import setup_logging
 
 
-def create_ionos_auth_headers() -> Dict[str, str]:
-    """
-    Creates HTTP Basic Auth headers for IONOS API.
+
+# def create_ionos_auth_headers() -> Dict[str, str]:
+#     """
+#     Creates HTTP Basic Auth headers for IONOS API.
     
-    Reads IONOS_USERNAME and IONOS_PASSWORD from environment variables
-    and creates a properly formatted Basic Auth header.
+#     Reads IONOS_USERNAME and IONOS_PASSWORD from environment variables
+#     and creates a properly formatted Basic Auth header.
     
-    Returns:
-        Dict with 'Authorization' header containing Basic auth credentials
+#     Returns:
+#         Dict with 'Authorization' header containing Basic auth credentials
         
-    Raises:
-        ValueError: If IONOS_USERNAME or IONOS_PASSWORD is not set
-    """
-    username = os.environ.get('IONOS_USERNAME', '').strip()
+#     Raises:
+#         ValueError: If IONOS_USERNAME or IONOS_PASSWORD is not set
+#     """
+#     username = os.environ.get('IONOS_USERNAME', '').strip()
+#     password = os.environ.get('IONOS_PASSWORD', '').strip()
+    
+#     if not username:
+#         raise ValueError("IONOS_USERNAME environment variable is not set or empty")
+#     if not password:
+#         raise ValueError("IONOS_PASSWORD environment variable is not set or empty")
+    
+#     # Encode credentials in Base64 for Basic Auth
+#     credentials = f"{username}:{password}"
+#     encoded = base64.b64encode(credentials.encode()).decode('utf-8')
+    
+#     logging.debug("IONOS Basic Auth header created successfully")
+    
+#     return {
+#         "Authorization": f"Basic {encoded}",
+#         "Accept": "application/json"
+#     }
+
+def create_ionos_auth_headers() -> Dict[str, str]:
     password = os.environ.get('IONOS_PASSWORD', '').strip()
     
-    if not username:
-        raise ValueError("IONOS_USERNAME environment variable is not set or empty")
-    if not password:
-        raise ValueError("IONOS_PASSWORD environment variable is not set or empty")
-    
-    # Encode credentials in Base64 for Basic Auth
-    credentials = f"{username}:{password}"
-    encoded = base64.b64encode(credentials.encode()).decode('utf-8')
-    
-    logging.debug("IONOS Basic Auth header created successfully")
-    
     return {
-        "Authorization": f"Basic {encoded}",
+        "Authorization": f"Bearer {password}",
         "Accept": "application/json"
     }
 
@@ -472,7 +486,7 @@ def process_month(
     
     for datacenter in datacenter_costs:
         datacenter_id = datacenter['id']
-        logging.info(f"Processing datacenter {datacenter_id}")
+        logging.info(f"Processing datacenter {datacenter_id} in {month}")
         
         line_items = transform_ionos_to_line_items(datacenter['meters'], include_product_group, seller_id, seller_product_group)
         
