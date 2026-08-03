@@ -622,7 +622,7 @@ class TestEndToEnd:
         assert meters[2]['totalCost'] == 125.00
 
 
-class TestTransformIonosToLineItems:
+class TestTransformIonosToLineItemsAdditional:
     """Tests for transform_ionos_to_line_items function."""
     
     def test_line_items_without_product_group(self, sample_products):
@@ -750,7 +750,7 @@ class TestTransformIonosToLineItems:
         assert 'productGroup' not in line_items[1]
 
 
-class TestEndToEnd:
+class TestEndToEndWithProductGroup:
     """End-to-end tests for the complete flow."""
     
     def test_complete_flow_with_product_group(self, sample_usage, sample_products):
