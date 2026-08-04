@@ -50,31 +50,6 @@ services:
     networks:
       - metering-network
 
-networks:
-  metering-network:
-    driver: bridge
-
-volumes:
-  grafana-data:
-  tencent-platform:
-    image: mesh-metering-tencent:latest
-    container_name: tencent-platform
-    environment:
-      - MESHSTACK_MESHFED_URL=${MESHSTACK_MESHFED_URL}
-      - MESHSTACK_KRAKEN_URL=${MESHSTACK_KRAKEN_URL}
-      - MESHSTACK_API_USER=${MESHSTACK_API_USER}
-      - MESHSTACK_API_SECRET=${MESHSTACK_API_SECRET}
-      - TENCENT_API_HOST=${TENCENT_API_HOST}
-      - TENCENT_SECRET_ID=${TENCENT_SECRET_ID}
-      - TENCENT_SECRET_KEY=${TENCENT_SECRET_KEY}
-      - PLATFORM_ID=${TENCENT_PLATFORM_ID}
-      - LOKI_URL=http://loki:3100
-    depends_on:
-      loki:
-        condition: service_started
-    networks:
-      - metering-network
-
   ionos-platform:
     image: mesh-metering-ionos:latest
     container_name: ionos-platform
@@ -130,3 +105,30 @@ volumes:
         condition: service_started
     networks:
       - metering-network
+
+
+networks:
+  metering-network:
+    driver: bridge
+
+volumes:
+  grafana-data:
+  tencent-platform:
+    image: mesh-metering-tencent:latest
+    container_name: tencent-platform
+    environment:
+      - MESHSTACK_MESHFED_URL=${MESHSTACK_MESHFED_URL}
+      - MESHSTACK_KRAKEN_URL=${MESHSTACK_KRAKEN_URL}
+      - MESHSTACK_API_USER=${MESHSTACK_API_USER}
+      - MESHSTACK_API_SECRET=${MESHSTACK_API_SECRET}
+      - TENCENT_API_HOST=${TENCENT_API_HOST}
+      - TENCENT_SECRET_ID=${TENCENT_SECRET_ID}
+      - TENCENT_SECRET_KEY=${TENCENT_SECRET_KEY}
+      - PLATFORM_ID=${TENCENT_PLATFORM_ID}
+      - LOKI_URL=http://loki:3100
+    depends_on:
+      loki:
+        condition: service_started
+    networks:
+      - metering-network
+
