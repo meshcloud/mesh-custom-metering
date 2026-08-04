@@ -105,14 +105,7 @@ services:
         condition: service_started
     networks:
       - metering-network
-
-
-networks:
-  metering-network:
-    driver: bridge
-
-volumes:
-  grafana-data:
+      
   tencent-platform:
     image: mesh-metering-tencent:latest
     container_name: tencent-platform
@@ -131,4 +124,13 @@ volumes:
         condition: service_started
     networks:
       - metering-network
+
+
+networks:
+  metering-network:
+    driver: bridge
+
+volumes:
+  grafana-data:
+
 
