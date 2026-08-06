@@ -1,0 +1,18 @@
+services:
+  ionos-platform:
+    image: mesh-metering-ionos:latest
+    container_name: ionos-platform
+    environment:
+      - MESHSTACK_MESHFED_URL=${MESHSTACK_MESHFED_URL}
+      - MESHSTACK_KRAKEN_URL=${MESHSTACK_KRAKEN_URL}
+      - MESHSTACK_API_USER=${MESHSTACK_API_USER}
+      - MESHSTACK_API_SECRET=${MESHSTACK_API_SECRET}
+      - IONOS_API_HOST=${IONOS_API_HOST}
+      - IONOS_API_TOKEN=${IONOS_API_TOKEN}
+      - PLATFORM_ID=${IONOS_PLATFORM_ID}
+    networks:
+      - metering-network
+
+networks:
+  metering-network:
+    driver: bridge
