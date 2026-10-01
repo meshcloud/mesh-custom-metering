@@ -1,0 +1,65 @@
+# Example Kubernetes CronJob for the T-Cloud metering image.
+# Runs hourly and re-submits the full current month (and last month during the
+# first five days of a month) to meshStack. Adjust namespace, URLs and
+# PLATFORM_ID, and create the referenced secret before applying:
+#
+#   kubectl create secret generic mesh-metering-tcloud-secrets \
+#     --from-literal=tcloud-api-token='<financial dashboard api key>' \
+#     --from-literal=meshstack-api-secret='<meshstack api secret>'
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mesh-metering-tcloud
+  namespace: mesh-metering
+  labels:
+    app: mesh-metering-tcloud
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: mesh-metering-tcloud
+        spec:
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: meshcloud-registry
+          containers:
+            - name: mesh-metering-tcloud
+              image: ghcr.io/meshcloud/mesh-custom-metering/mesh-metering-tcloud:latest
+              imagePullPolicy: Always
+              env:
+                - name: TCLOUD_API_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: mesh-metering-tcloud-secrets
+                      key: tcloud-api-token
+                - name: MESHSTACK_API_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: mesh-metering-tcloud-secrets
+                      key: meshstack-api-secret
+                - name: MESHSTACK_MESHFED_URL
+                  value: "https://api.example.meshstack.io"
+                - name: MESHSTACK_KRAKEN_URL
+                  value: "https://kraken.example.meshstack.io"
+                - name: MESHSTACK_API_USER
+                  value: "tcloud-metering"
+                - name: PLATFORM_ID
+                  value: "tcloud.production"
+                # Optional: restrict to specific contracts (comma-separated)
+                # - name: TCLOUD_CONTRACT_IDS
+                #   value: "1000012345"
+                - name: LOG_LEVEL
+                  value: "INFO"
+              resources:
+                requests:
+                  memory: "256Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "512Mi"
+                  cpu: "500m"
