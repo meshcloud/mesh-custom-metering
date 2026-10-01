@@ -43,6 +43,7 @@ graph LR;
   - STACKIT
   - OVH
   - Tencent Cloud
+  - T-Cloud (Open Telekom Cloud, via the Financial Dashboard API)
 
 ## Supported Platforms
 
@@ -53,6 +54,7 @@ graph LR;
 | STACKIT | ✅ | STACKIT Cloud platform |
 | OVH | ✅ | OVH Cloud platform |
 | Tencent | ✅ | Tencent Cloud platform |
+| T-Cloud | ✅ | Open Telekom Cloud, project-based metering via the Financial Dashboard API v2 |
 
 ## Quick Start
 
@@ -99,6 +101,19 @@ LOKI_URL=http://loki:3100
 INCLUDE_DELETED_TENANTS=true
 ```
 
+#### T-Cloud specifics
+
+T-Cloud metering uses the [Financial Dashboard API v2](https://docs.otc.t-systems.com/enterprise-dashboard/api-ref/v2/). Create an API key in the Financial Dashboard (Configuration > API Keys) with security level "Admin"; keys expire after at most 90 days and must be rotated. A key from the payer organization returns consumption for all projects in the organization. Each run fetches the daily consumption of the whole month (`/v2/daily/consumption`), aggregates it per OTC project and product (elastic `EL` and recurring `RC` charges stay separate line items) and submits one usage report per project id.
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `TCLOUD_API_TOKEN` | Yes | - | Financial Dashboard API key |
+| `TCLOUD_API_BASE_URL` | No | `https://api-enterprise-dashboard.otc-service.com` | API base URL override |
+| `TCLOUD_CONTRACT_IDS` | No | all contracts | Comma-separated contract numbers to restrict the query |
+| `TCLOUD_DRY_RUN` | No | `false` | Fetch and transform against the live API but do not submit to meshStack |
+
+The job exits with status 1 when a T-Cloud fetch fails (so a Kubernetes Job is marked failed and retried), and with status 0 otherwise, even if individual project submissions were rejected by meshStack. See `platforms/tcloud/k8s-cronjob.example.yaml` for an hourly CronJob.
+
 ### Running with Docker Compose
 
 The included `docker-compose.yml` provides a complete observability stack with Loki and Grafana:
@@ -131,6 +146,7 @@ mesh-custom-metering/
 │   └── ...
 ├── tests/                 # Test suite
 │   ├── core/
+│   ├── tcloud/
 │   └── monitoring/
 ├── scripts/               # Build and deployment scripts
 └── .github/workflows/     # CI/CD pipelines
@@ -145,7 +161,8 @@ mesh-custom-metering/
    - `process_tenant_costs()`: Process and submit usage reports
 3. Create `Dockerfile` and `requirements.txt`
 4. Add to `scripts/build-all.sh`
-5. Create CI workflow in `.github/workflows/`
+5. Create CI workflow in `.github/workflows/` and add the platform to `ci-all-platforms.yml`, `release-platform.yml`, `security-scan.yml` and `dependabot.yml`
+6. Add unit tests under `tests/<platform-name>/` and a `test` job to the platform CI workflow (see `platforms/tcloud/` and `tests/tcloud/` for an example)
 
 ### Core Library Functions
 

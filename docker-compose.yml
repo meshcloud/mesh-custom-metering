@@ -86,6 +86,26 @@ services:
     networks:
       - metering-network
 
+  tcloud-platform:
+    image: mesh-metering-tcloud:latest
+    container_name: tcloud-platform
+    environment:
+      - MESHSTACK_MESHFED_URL=${MESHSTACK_MESHFED_URL}
+      - MESHSTACK_KRAKEN_URL=${MESHSTACK_KRAKEN_URL}
+      - MESHSTACK_API_USER=${MESHSTACK_API_USER}
+      - MESHSTACK_API_SECRET=${MESHSTACK_API_SECRET}
+      - TCLOUD_API_TOKEN=${TCLOUD_API_TOKEN}
+      - TCLOUD_CONTRACT_IDS=${TCLOUD_CONTRACT_IDS}
+      - TCLOUD_DRY_RUN=${TCLOUD_DRY_RUN:-false}
+      - PLATFORM_ID=${TCLOUD_PLATFORM_ID}
+      - LOKI_URL=http://loki:3100
+      - LOG_LEVEL=${LOG_LEVEL}
+    depends_on:
+      loki:
+        condition: service_started
+    networks:
+      - metering-network
+
   ovh-platform:
     image: mesh-metering-ovh:latest
     container_name: ovh-platform

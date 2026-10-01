@@ -12,6 +12,7 @@ on:
           - ionos
           - stackit
           - ovh
+          - tcloud
           - all
       version:
         description: 'Version (e.g., 1.2.3)'
@@ -97,7 +98,7 @@ jobs:
     
     strategy:
       matrix:
-        platform: [tencent, ionos, stackit, ovh]
+        platform: [tencent, ionos, stackit, ovh, tcloud]
     
     steps:
       - name: Checkout code
