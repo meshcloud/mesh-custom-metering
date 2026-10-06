@@ -24,7 +24,7 @@ LINE_EXCERPT_LENGTH = 200
 
 UNKNOWN_PRODUCT = "UNKNOWN"
 CURRENCY = "EUR"
-SELLER_ID = "T-Cloud"
+SELLER_ID = "T Cloud"
 
 # (product, product_description, quantity_type, consumption_type)
 GroupKey = Tuple[str, str, str, str]

@@ -86,7 +86,7 @@ def test_process_month_submits_one_report_per_project(tcloud_main, monkeypatch, 
 
     payload_a = next(s["payload"] for s in mesh.submissions if s["tenant_id"] == PROJECT_A)
     assert payload_a["kind"] == "meshResourceUsageReport"
-    assert payload_a["source"] == "T-Cloud"
+    assert payload_a["source"] == "T Cloud"
     assert payload_a["fullPlatformIdentifier"] == "tcloud.test"
     assert [item["usageType"] for item in payload_a["lineItems"]] == ["OTC_KMS_UD_C (EL)", "OTC_KMS_UD_C (RC)"]
 

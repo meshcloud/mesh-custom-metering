@@ -25,7 +25,8 @@ from meshstack_client import MeshStackClient, prepare_payload  # noqa: E402
 from utils import get_current_and_last_month, format_date_for_meshstack, should_process_last_month  # noqa: E402
 from logging_config import setup_logging  # noqa: E402
 
-SOURCE_NAME = "T-Cloud"
+# meshStack (kraken) only allows letters, digits and spaces in the report source, so no hyphen here.
+SOURCE_NAME = "T Cloud"
 TRUE_VALUES = {"1", "true", "yes", "on"}
 
 

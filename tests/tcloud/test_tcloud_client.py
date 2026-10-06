@@ -166,7 +166,7 @@ def test_transform_fields_and_rounding():
         "currency": "EUR",
         "usageUnit": "h",
         "totalCost": 0.25,
-        "sellerId": "T-Cloud",
+        "sellerId": "T Cloud",
     }
 
 
