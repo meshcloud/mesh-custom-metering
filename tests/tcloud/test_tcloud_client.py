@@ -108,7 +108,7 @@ def test_fetch_wraps_request_exception_on_connect():
 def test_aggregate_sums_same_product_across_days_and_regions(sample_records):
     result = aggregate_by_project(sample_records)
 
-    el_group = result.projects[PROJECT_A][("OTC_KMS_UD_C", "KMS Customer Masterkey", "h", "EL")]
+    el_group = result.projects[PROJECT_A][("OTC_KMS_UD_C", "h", "EL")]
     assert el_group.quantity == pytest.approx(66.0)   # 24 + 24 + 12 + 6 (EU-NL merged)
     assert el_group.amount == pytest.approx(0.275)
     assert el_group.records == 4
@@ -118,8 +118,8 @@ def test_aggregate_keeps_el_and_rc_apart(sample_records):
     result = aggregate_by_project(sample_records)
 
     groups = result.projects[PROJECT_A]
-    assert ("OTC_KMS_UD_C", "KMS Customer Masterkey", "h", "RC") in groups
-    assert groups[("OTC_KMS_UD_C", "KMS Customer Masterkey", "h", "RC")].amount == pytest.approx(10.0)
+    assert ("OTC_KMS_UD_C", "h", "RC") in groups
+    assert groups[("OTC_KMS_UD_C", "h", "RC")].amount == pytest.approx(10.0)
     assert len(groups) == 2
 
 
@@ -127,7 +127,7 @@ def test_aggregate_separates_projects_and_counts_skipped(sample_records):
     result = aggregate_by_project(sample_records)
 
     assert set(result.projects) == {PROJECT_A, PROJECT_B}
-    assert result.projects[PROJECT_B][("OTC_ECS_S3", "ECS s3.large", "h", "EL")].quantity == 100.0
+    assert result.projects[PROJECT_B][("OTC_ECS_S3", "h", "EL")].quantity == 100.0
     assert result.total_records == 7
     assert result.skipped_no_project == 1
     assert result.status_counts == {"NEW": 6, "AGGREGATION_PROCESSED": 1}
@@ -141,20 +141,40 @@ def test_aggregate_handles_null_values_and_missing_product():
     result = aggregate_by_project(records)
 
     groups = result.projects[PROJECT_A]
-    assert groups[("OTC_KMS_UD_C", "KMS Customer Masterkey", "h", "EL")].quantity == 0.0
-    assert ("UNKNOWN", "", "h", "EL") in groups
+    assert groups[("OTC_KMS_UD_C", "h", "EL")].quantity == 0.0
+    assert ("UNKNOWN", "h", "EL") in groups
+
+
+def test_aggregate_ignores_description_changes_and_keeps_first_non_empty():
+    records = [
+        daily_record(product_description=None, quantity=1.0, amount=0.1),
+        daily_record(product_description="KMS Customer Masterkey", quantity=2.0, amount=0.2),
+        daily_record(product_description="KMS Customer Master Key (renamed)", quantity=3.0, amount=0.3),
+    ]
+    result = aggregate_by_project(records)
+
+    groups = result.projects[PROJECT_A]
+    assert list(groups) == [("OTC_KMS_UD_C", "h", "EL")]
+    aggregate = groups[("OTC_KMS_UD_C", "h", "EL")]
+    assert aggregate.records == 3
+    assert aggregate.quantity == pytest.approx(6.0)
+    assert aggregate.description == "KMS Customer Masterkey"
+
+    [item] = transform_to_line_items(groups)
+    assert item["productName"] == "KMS Customer Masterkey"
+    assert item["usageType"] == "OTC_KMS_UD_C (EL)"
 
 
 def test_aggregate_accepts_generator():
     result = aggregate_by_project(daily_record() for _ in range(3))
     assert result.total_records == 3
-    assert result.projects[PROJECT_A][("OTC_KMS_UD_C", "KMS Customer Masterkey", "h", "EL")].records == 3
+    assert result.projects[PROJECT_A][("OTC_KMS_UD_C", "h", "EL")].records == 3
 
 
 # --- transform_to_line_items -------------------------------------------------
 
 def test_transform_fields_and_rounding():
-    groups = {("OTC_KMS_UD_C", "KMS Customer Masterkey", "h", "EL"): Aggregate(quantity=60.0, amount=0.25, records=3)}
+    groups = {("OTC_KMS_UD_C", "h", "EL"): Aggregate(quantity=60.0, amount=0.25, records=3, description="KMS Customer Masterkey")}
 
     [item] = transform_to_line_items(groups)
 
@@ -171,7 +191,7 @@ def test_transform_fields_and_rounding():
 
 
 def test_transform_zero_quantity_keeps_total_cost():
-    groups = {("OTC_X", "Flat fee", "", "RC"): Aggregate(quantity=0.0, amount=12.5)}
+    groups = {("OTC_X", "", "RC"): Aggregate(quantity=0.0, amount=12.5, description="Flat fee")}
 
     [item] = transform_to_line_items(groups)
 
@@ -182,8 +202,8 @@ def test_transform_zero_quantity_keeps_total_cost():
 
 def test_transform_drops_all_zero_group_and_keeps_free_usage():
     groups = {
-        ("OTC_ZERO", "Nothing", "h", "EL"): Aggregate(quantity=0.0, amount=0.0),
-        ("OTC_FREE", "Free tier", "GB", "EL"): Aggregate(quantity=10.0, amount=0.0),
+        ("OTC_ZERO", "h", "EL"): Aggregate(quantity=0.0, amount=0.0),
+        ("OTC_FREE", "GB", "EL"): Aggregate(quantity=10.0, amount=0.0),
     }
 
     items = transform_to_line_items(groups)
@@ -193,16 +213,16 @@ def test_transform_drops_all_zero_group_and_keeps_free_usage():
 
 
 def test_transform_falls_back_to_product_code_without_description():
-    groups = {("OTC_NO_DESC", "", "h", "EL"): Aggregate(quantity=1.0, amount=1.0)}
+    groups = {("OTC_NO_DESC", "h", "EL"): Aggregate(quantity=1.0, amount=1.0, description="")}
     [item] = transform_to_line_items(groups)
     assert item["productName"] == "OTC_NO_DESC"
 
 
 def test_transform_output_sorted_by_usage_type():
     groups = {
-        ("OTC_B", "b", "h", "EL"): Aggregate(quantity=1.0, amount=1.0),
-        ("OTC_A", "a", "h", "RC"): Aggregate(quantity=1.0, amount=1.0),
-        ("OTC_A", "a", "h", "EL"): Aggregate(quantity=1.0, amount=1.0),
+        ("OTC_B", "h", "EL"): Aggregate(quantity=1.0, amount=1.0),
+        ("OTC_A", "h", "RC"): Aggregate(quantity=1.0, amount=1.0),
+        ("OTC_A", "h", "EL"): Aggregate(quantity=1.0, amount=1.0),
     }
     items = transform_to_line_items(groups)
     assert [item["usageType"] for item in items] == ["OTC_A (EL)", "OTC_A (RC)", "OTC_B (EL)"]

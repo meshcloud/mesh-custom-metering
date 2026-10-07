@@ -26,8 +26,10 @@ UNKNOWN_PRODUCT = "UNKNOWN"
 CURRENCY = "EUR"
 SELLER_ID = "T Cloud"
 
-# (product, product_description, quantity_type, consumption_type)
-GroupKey = Tuple[str, str, str, str]
+# (product, quantity_type, consumption_type). The product description is display
+# metadata and intentionally not part of the key: a missing or changed description
+# must not split one product into several line items.
+GroupKey = Tuple[str, str, str]
 
 
 class TCloudApiError(Exception):
@@ -105,6 +107,8 @@ class Aggregate:
     quantity: float = 0.0
     amount: float = 0.0
     records: int = 0
+    # first non-empty product_description seen for this group
+    description: str = ""
 
 
 @dataclass
@@ -142,7 +146,6 @@ def aggregate_by_project(records: Iterable[Dict[str, Any]]) -> AggregationResult
 
         key: GroupKey = (
             str(record.get("product") or UNKNOWN_PRODUCT),
-            str(record.get("product_description") or ""),
             str(record.get("quantity_type") or ""),
             str(record.get("consumption_type") or ""),
         )
@@ -152,6 +155,8 @@ def aggregate_by_project(records: Iterable[Dict[str, Any]]) -> AggregationResult
         aggregate.quantity += _as_float(record.get("quantity"))
         aggregate.amount += _as_float(record.get("amount"))
         aggregate.records += 1
+        if not aggregate.description:
+            aggregate.description = str(record.get("product_description") or "")
 
     logging.debug(
         f"Aggregated {result.total_records} records into {len(result.projects)} projects "
@@ -173,7 +178,8 @@ def transform_to_line_items(groups: Dict[GroupKey, Aggregate]) -> List[Dict[str,
     """
     line_items: List[Dict[str, Any]] = []
 
-    for (product, description, unit, consumption_type), aggregate in groups.items():
+    for (product, unit, consumption_type), aggregate in groups.items():
+        description = aggregate.description
         if aggregate.quantity == 0 and aggregate.amount == 0:
             logging.debug(f"Dropping zero group: {product} ({consumption_type})")
             continue
