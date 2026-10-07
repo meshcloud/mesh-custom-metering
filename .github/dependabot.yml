@@ -55,6 +55,17 @@ updates:
     commit-message:
       prefix: "deps(ovh)"
 
+  # T-Cloud platform
+  - package-ecosystem: "pip"
+    directory: "/platforms/tcloud"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "tcloud"
+    commit-message:
+      prefix: "deps(tcloud)"
+
   # Docker - Tencent
   - package-ecosystem: "docker"
     directory: "/platforms/tencent"
@@ -94,6 +105,16 @@ updates:
       - "dependencies"
       - "docker"
       - "ovh"
+
+  # Docker - T-Cloud
+  - package-ecosystem: "docker"
+    directory: "/platforms/tcloud"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "tcloud"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
