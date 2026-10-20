@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [tencent, ionos, stackit, ovh]
+        platform: [tencent, ionos, stackit, ovh, tcloud]
     
     steps:
       - name: Checkout code
@@ -68,7 +68,7 @@ jobs:
 
       - name: Check platform dependencies
         run: |
-          for platform in tencent ionos stackit ovh; do
+          for platform in tencent ionos stackit ovh tcloud; do
             echo "Checking $platform..."
             safety check -r platforms/$platform/requirements.txt || true
           done
