@@ -3,4 +3,4 @@ tenacity>=8.2.0
 python-dateutil>=2.8.2
 python-logging-loki>=0.3.1
 types-requests>=2.31.0
-types-python-dateutil>=2.8.19
+types-python-dateutil>=2.9.0.20260807
